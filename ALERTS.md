@@ -111,8 +111,8 @@ Subscribers running a MeshCore companion app should add a channel with the same 
 ```
 MyObserver: WiFi down 47m (reason 201)
 MyObserver: WiFi recovered after 1h3m
-MyObserver: MQTT slot 1 (analyzer-us) down 4h12m
-MyObserver: MQTT slot 1 (analyzer-us) recovered after 4h45m
+MyObserver: MQTT slot 1 (coloradomesh) down 4h12m
+MyObserver: MQTT slot 1 (coloradomesh) recovered after 4h45m
 ```
 
 ## Notes

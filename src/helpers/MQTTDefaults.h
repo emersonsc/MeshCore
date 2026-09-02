@@ -10,16 +10,16 @@
 
 // Compile-time defaults for fresh /mqtt.json (override via platformio build_flags).
 // Example:
-//   -D MQTT_DEFAULT_SLOT1_PRESET='"meshcore-ca-1"'
-//   -D MQTT_DEFAULT_IATA='"YYZ"'
-//   -D MQTT_DEFAULT_TIMEZONE='"America/Toronto"'
-//   -D MQTT_DEFAULT_TIMEZONE_OFFSET=-5
+//   -D MQTT_DEFAULT_SLOT1_PRESET='"coloradomesh"'
+//   -D MQTT_DEFAULT_IATA='"DEN"'
+//   -D MQTT_DEFAULT_TIMEZONE='"America/Denver"'
+//   -D MQTT_DEFAULT_TIMEZONE_OFFSET=-8
 
 #ifndef MQTT_DEFAULT_SLOT1_PRESET
-#define MQTT_DEFAULT_SLOT1_PRESET "analyzer-us"
+#define MQTT_DEFAULT_SLOT1_PRESET "coloradomesh"
 #endif
 #ifndef MQTT_DEFAULT_SLOT2_PRESET
-#define MQTT_DEFAULT_SLOT2_PRESET "analyzer-eu"
+#define MQTT_DEFAULT_SLOT2_PRESET "meshmapper"
 #endif
 #ifndef MQTT_DEFAULT_SLOT3_PRESET
 #define MQTT_DEFAULT_SLOT3_PRESET "none"
@@ -39,11 +39,11 @@
 #endif
 
 #ifndef MQTT_DEFAULT_TIMEZONE
-#define MQTT_DEFAULT_TIMEZONE ""
+#define MQTT_DEFAULT_TIMEZONE "America/Denver"
 #endif
 
 #ifndef MQTT_DEFAULT_TIMEZONE_OFFSET
-#define MQTT_DEFAULT_TIMEZONE_OFFSET 0
+#define MQTT_DEFAULT_TIMEZONE_OFFSET -8
 #endif
 
 static inline void mqttDefaultSlotPreset(char* dest, size_t dest_size, const char* preset) {

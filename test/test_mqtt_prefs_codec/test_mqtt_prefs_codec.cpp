@@ -92,7 +92,7 @@ TEST(MQTTPrefsCodec, MigratesPostWifiPowerPreSlotFixture) {
   // timezone=145, server=178, port=242. Do not derive this fixture from structs.
   std::vector<uint8_t> bytes(472, 0);
   writeText(&bytes, 0, "legacy-node");
-  writeText(&bytes, 32, "YYZ");
+  writeText(&bytes, 32, "DEN");
   bytes[40] = 1;
   bytes[41] = 1;
   bytes[43] = 2;
