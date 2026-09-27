@@ -83,6 +83,50 @@ static inline void applyMQTTDefaults(MQTTPrefs* prefs) {
                         MQTT_DEFAULT_SLOT5_PRESET);
   mqttDefaultSlotPreset(prefs->mqtt_slot_preset[5], sizeof(prefs->mqtt_slot_preset[5]),
                         MQTT_DEFAULT_SLOT6_PRESET);
+  #ifdef CORDER_FARM_CORE_PROFILE
+  // Corder Farm MQTT destinations.
+  // Custom TLS/WSS slots use the firmware's embedded CA bundle.
+  // Slot 1 - MichMesh
+  strncpy(prefs->mqtt_slot_preset[0], "custom",
+          sizeof(prefs->mqtt_slot_preset[0]) - 1);
+  strncpy(prefs->mqtt_slot_host[0], "mqtts://mqtt.michmesh.net:8883",
+          sizeof(prefs->mqtt_slot_host[0]) - 1);
+  prefs->mqtt_slot_port[0] = 8883;
+  strncpy(prefs->mqtt_slot_username[0], "meshdev",
+          sizeof(prefs->mqtt_slot_username[0]) - 1);
+  strncpy(prefs->mqtt_slot_password[0], "large4cats",
+          sizeof(prefs->mqtt_slot_password[0]) - 1);
+
+  // Slot 2 - WestMich
+  strncpy(prefs->mqtt_slot_preset[1], "custom",
+          sizeof(prefs->mqtt_slot_preset[1]) - 1);
+  strncpy(prefs->mqtt_slot_host[1], "wss://mqtt.westmichmesh.com:443",
+          sizeof(prefs->mqtt_slot_host[1]) - 1);
+  prefs->mqtt_slot_port[1] = 443;
+
+  // Slot 3 - Timmins
+  strncpy(prefs->mqtt_slot_preset[2], "custom",
+          sizeof(prefs->mqtt_slot_preset[2]) - 1);
+  strncpy(prefs->mqtt_slot_host[2], "mqtt://corescope.timmins.net:1883",
+          sizeof(prefs->mqtt_slot_host[2]) - 1);
+  prefs->mqtt_slot_port[2] = 1883;
+
+  // Slot 4 - Thumb
+  strncpy(prefs->mqtt_slot_preset[3], "custom",
+          sizeof(prefs->mqtt_slot_preset[3]) - 1);
+  strncpy(prefs->mqtt_slot_host[3], "mqtt://cs.tarratt.net:1883",
+          sizeof(prefs->mqtt_slot_host[3]) - 1);
+  prefs->mqtt_slot_port[3] = 1883;
+
+  // Slot 5 - MeshMapper built-in preset
+  strncpy(prefs->mqtt_slot_preset[4], "meshmapper",
+          sizeof(prefs->mqtt_slot_preset[4]) - 1);
+
+  // Slot 6 intentionally left available
+  strncpy(prefs->mqtt_slot_preset[5], "none",
+          sizeof(prefs->mqtt_slot_preset[5]) - 1);
+#endif
+
   for (int i = 0; i < MQTT_PREFS_SLOT_COUNT; ++i) {
     prefs->mqtt_slot_packet_filter[i] = MQTTPacketFilter::kAllPacketTypes;
   }
@@ -105,11 +149,13 @@ static inline void applyMQTTDefaults(MQTTPrefs* prefs) {
   prefs->alert_mqtt_minutes = 240;
   prefs->alert_min_interval_min = 60;
 
-  // Neighbors publishing defaults off; a defaulted tail is a valid 24h interval
-  // (not 0) so an in-lineage upgrade from a pre-neighbors payload is sane.
+   // Neighbor publication.
+#ifdef CORDER_FARM_CORE_PROFILE
+  prefs->mqtt_neighbors_enabled = 1;
+#else
   prefs->mqtt_neighbors_enabled = 0;
+#endif
   prefs->mqtt_neighbors_interval = MQTT_NEIGHBORS_DEFAULT_INTERVAL_MS;
-
   prefs->display_timeout_secs = DISPLAY_TIMEOUT_DEFAULT_SECS;
   prefs->display_flip = 0;
 }

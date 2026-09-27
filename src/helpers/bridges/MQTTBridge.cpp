@@ -4348,7 +4348,9 @@ bool MQTTBridge::timezoneRulesFromString(const char* tz_string, TimeChangeRule& 
     std_out = TimeChangeRule{"CST", First, Sun, Nov, 2, -360};
     dst_out = TimeChangeRule{"CDT", Second, Sun, Mar, 2, -300};
     return true;
-  } else if (strcmp(tz_string, "America/New_York") == 0 || strcmp(tz_string, "America/Toronto") == 0) {
+  } else if (strcmp(tz_string, "America/New_York") == 0 ||
+           strcmp(tz_string, "America/Toronto") == 0 ||
+           strcmp(tz_string, "America/Detroit") == 0) {
     std_out = TimeChangeRule{"EST", First, Sun, Nov, 2, -300};
     dst_out = TimeChangeRule{"EDT", Second, Sun, Mar, 2, -240};
     return true;
