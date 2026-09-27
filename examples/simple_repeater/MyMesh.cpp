@@ -33,6 +33,70 @@
   #define ADMIN_PASSWORD "password"
 #endif
 
+#ifndef DEFAULT_OWNER_NAME
+  #define DEFAULT_OWNER_NAME ""
+#endif
+
+#ifndef DEFAULT_OWNER_URL
+  #define DEFAULT_OWNER_URL ""
+#endif
+
+#ifndef DEFAULT_ADVERT_INTERVAL
+  #define DEFAULT_ADVERT_INTERVAL 2
+#endif
+
+#ifndef DEFAULT_FLOOD_ADVERT_INTERVAL
+  #define DEFAULT_FLOOD_ADVERT_INTERVAL 47
+#endif
+
+#ifndef DEFAULT_FLOOD_MAX
+  #define DEFAULT_FLOOD_MAX 64
+#endif
+
+#ifndef DEFAULT_FLOOD_MAX_UNSCOPED
+  #define DEFAULT_FLOOD_MAX_UNSCOPED 64
+#endif
+
+#ifndef DEFAULT_FLOOD_MAX_ADVERT
+  #define DEFAULT_FLOOD_MAX_ADVERT 8
+#endif
+
+#ifndef DEFAULT_TX_DELAY
+  #define DEFAULT_TX_DELAY 0.5f
+#endif
+
+#ifndef DEFAULT_DIRECT_TX_DELAY
+  #define DEFAULT_DIRECT_TX_DELAY 0.3f
+#endif
+
+#ifndef DEFAULT_RX_DELAY
+  #define DEFAULT_RX_DELAY 0.0f
+#endif
+
+#ifndef DEFAULT_PATH_HASH_MODE
+  #define DEFAULT_PATH_HASH_MODE 0
+#endif
+
+#ifndef DEFAULT_AGC_RESET_INTERVAL
+  #define DEFAULT_AGC_RESET_INTERVAL 0
+#endif
+
+#ifndef DEFAULT_DUTYCYCLE
+  #define DEFAULT_DUTYCYCLE 100
+#endif
+
+#ifndef DEFAULT_RX_BOOSTED_GAIN
+  #define DEFAULT_RX_BOOSTED_GAIN 1
+#endif
+
+#ifndef DEFAULT_GPS_ENABLED
+  #define DEFAULT_GPS_ENABLED 0
+#endif
+
+#ifndef DEFAULT_POWERSAVING_ENABLED
+  #define DEFAULT_POWERSAVING_ENABLED 0
+#endif
+
 #ifndef SERVER_RESPONSE_DELAY
   #define SERVER_RESPONSE_DELAY 300
 #endif
@@ -245,9 +309,20 @@ int MyMesh::handleRequest(ClientInfo *sender, uint32_t sender_timestamp, uint8_t
 
     // query other sensors -- target specific
     if ((sender->permissions & PERM_ACL_ROLE_MASK) == PERM_ACL_GUEST) {
-      perm_mask = 0x00;  // just base telemetry allowed
-    }
-    sensors.querySensors(perm_mask, telemetry);
+  perm_mask = TELEM_PERM_ENVIRONMENT | TELEM_PERM_LOCATION;
+}
+
+sensors.querySensors(perm_mask, telemetry);
+
+// If GPS is disabled, publish the repeater's configured static location.
+if ((perm_mask & TELEM_PERM_LOCATION) && !_prefs.gps_enabled) {
+  telemetry.addGPS(
+    TELEM_CHANNEL_SELF,
+    _prefs.node_lat,
+    _prefs.node_lon,
+    359.0f
+  );
+}
 
 	// This default temperature will be overridden by external sensors (if any)
     float temperature = board.getMCUTemperature();
@@ -886,25 +961,40 @@ MyMesh::MyMesh(mesh::MainBoard &board, mesh::Radio &radio, mesh::MillisecondCloc
   memset(neighbours, 0, sizeof(neighbours));
 #endif
 
-  // defaults
-  _prefs.airtime_factor = 1.0;
-  _prefs.rx_delay_base = 0.0f;   // turn off by default, was 10.0;
-  _prefs.tx_delay_factor = 0.5f; // was 0.25f
-  _prefs.direct_tx_delay_factor = 0.3f; // was 0.2
-  StrHelper::strncpy(_prefs.node_name, ADVERT_NAME, sizeof(_prefs.node_name));
-  _prefs.node_lat = ADVERT_LAT;
-  _prefs.node_lon = ADVERT_LON;
-  StrHelper::strncpy(_prefs.password, ADMIN_PASSWORD, sizeof(_prefs.password));
-  _prefs.freq = LORA_FREQ;
-  _prefs.sf = LORA_SF;
-  _prefs.bw = LORA_BW;
-  _prefs.cr = LORA_CR;
-  _prefs.tx_power_dbm = LORA_TX_POWER;
-  _prefs.advert_interval = 1;        // default to 2 minutes for NEW installs
-  _prefs.flood_advert_interval = 47; // 47 hours
-  _prefs.flood_max = 64;
-  _prefs.flood_max_unscoped = 64;
-  _prefs.flood_max_advert = 8;
+ // defaults
+_prefs.airtime_factor = (100.0f / DEFAULT_DUTYCYCLE) - 1.0f;
+
+_prefs.rx_delay_base = DEFAULT_RX_DELAY;
+_prefs.tx_delay_factor = DEFAULT_TX_DELAY;
+_prefs.direct_tx_delay_factor = DEFAULT_DIRECT_TX_DELAY;
+
+StrHelper::strncpy(_prefs.node_name, ADVERT_NAME, sizeof(_prefs.node_name));
+_prefs.node_lat = ADVERT_LAT;
+_prefs.node_lon = ADVERT_LON;
+
+StrHelper::strncpy(_prefs.password, ADMIN_PASSWORD, sizeof(_prefs.password));
+
+_prefs.freq = LORA_FREQ;
+_prefs.sf = LORA_SF;
+_prefs.bw = LORA_BW;
+_prefs.cr = LORA_CR;
+_prefs.tx_power_dbm = LORA_TX_POWER;
+
+// Stored internally in 2-minute units
+_prefs.advert_interval = DEFAULT_ADVERT_INTERVAL / 2;
+
+_prefs.flood_advert_interval = DEFAULT_FLOOD_ADVERT_INTERVAL;
+_prefs.flood_max = DEFAULT_FLOOD_MAX;
+_prefs.flood_max_unscoped = DEFAULT_FLOOD_MAX_UNSCOPED;
+_prefs.flood_max_advert = DEFAULT_FLOOD_MAX_ADVERT;
+
+_prefs.path_hash_mode = DEFAULT_PATH_HASH_MODE;
+
+// Internal unit is 4 seconds
+_prefs.agc_reset_interval = DEFAULT_AGC_RESET_INTERVAL / 4;
+
+_prefs.powersaving_enabled = DEFAULT_POWERSAVING_ENABLED;
+
   _prefs.interference_threshold = 0; // disabled
   _prefs.cad_enabled = 0;            // hardware CAD before TX (off by default; 'set cad on')
 
@@ -918,15 +1008,23 @@ MyMesh::MyMesh(mesh::MainBoard &board, mesh::Radio &radio, mesh::MillisecondCloc
   StrHelper::strncpy(_prefs.bridge_secret, "LVSITANOS", sizeof(_prefs.bridge_secret));
 
   // GPS defaults
-  _prefs.gps_enabled = 0;
-  _prefs.gps_interval = 0;
-  _prefs.advert_loc_policy = ADVERT_LOC_PREFS;
+_prefs.gps_enabled = DEFAULT_GPS_ENABLED;
+_prefs.gps_interval = 0;
+_prefs.advert_loc_policy = ADVERT_LOC_PREFS;
+
+snprintf(
+  _prefs.owner_info,
+  sizeof(_prefs.owner_info),
+  "%s\n%s",
+  DEFAULT_OWNER_NAME,
+  DEFAULT_OWNER_URL
+);
 
   _prefs.adc_multiplier = 0.0f; // 0.0f means use default board multiplier
 
 #if defined(USE_SX1262) || defined(USE_SX1268)
 #ifdef SX126X_RX_BOOSTED_GAIN
-  _prefs.rx_boosted_gain = SX126X_RX_BOOSTED_GAIN;
+  _prefs.rx_boosted_gain = DEFAULT_RX_BOOSTED_GAIN;
 #else
   _prefs.rx_boosted_gain = 1; // enabled by default;
 #endif
@@ -948,6 +1046,46 @@ void MyMesh::begin(FILESYSTEM *fs) {
   acl.load(_fs, self_id);
   // TODO: key_store.begin();
   region_map.load(_fs);
+  #ifdef CLARE_80D_PROFILE
+  // Bootstrap Clare County / MichMesh regions only if missing.
+  if (region_map.findByName("midwest") == NULL) {
+    RegionEntry* wildcard = &region_map.getWildcard();
+
+    RegionEntry* midwest = region_map.putRegion("midwest", wildcard->id);
+    if (midwest) {
+      midwest->flags = 0;
+    }
+
+    RegionEntry* mi = region_map.putRegion("mi", midwest ? midwest->id : wildcard->id);
+    if (mi) {
+      mi->flags = 0;
+
+      RegionEntry* mi_north = region_map.putRegion("mi-north", mi->id);
+      if (mi_north) mi_north->flags = 0;
+
+      RegionEntry* mi_central = region_map.putRegion("mi-central", mi->id);
+      if (mi_central) mi_central->flags = 0;
+
+      RegionEntry* mi_east = region_map.putRegion("mi-east", mi->id);
+      if (mi_east) mi_east->flags = 0;
+
+      RegionEntry* mi_west = region_map.putRegion("mi-west", mi->id);
+      if (mi_west) mi_west->flags = 0;
+
+      RegionEntry* mi_upper = region_map.putRegion("mi-upper", mi->id);
+      if (mi_upper) mi_upper->flags = 0;
+
+      // Default flood scope stays at #mi.
+      region_map.setDefaultRegion(mi);
+    }
+
+    // Home stays wildcard (*).
+    region_map.setHomeRegion(wildcard);
+
+    // Save the freshly-created region configuration.
+    saveRegions();
+  }
+#endif
 
   // establish default-scope
   {

@@ -4,6 +4,8 @@
 #include "AdvertDataHelpers.h"
 #include "TxtDataHelpers.h"
 #include <RTClib.h>
+#include <Wire.h>
+#include <Adafruit_BME280.h>
 
 #ifndef BRIDGE_MAX_BAUD
 #define BRIDGE_MAX_BAUD 115200
@@ -280,6 +282,61 @@ void CommonCLI::handleCommand(uint32_t sender_timestamp, char* command, char* re
         sprintf(reply, "> %s", val);
       } else {
         strcpy(reply, "null");
+      }
+        } else if (strcmp(command, "i2c scan") == 0) {
+      TwoWire* wire = &Wire1;
+
+      char* dp = reply;
+      int found = 0;
+
+      for (uint8_t addr = 0x08; addr < 0x78; addr++) {
+        wire->beginTransmission(addr);
+
+        if (wire->endTransmission() == 0) {
+          if (found > 0) {
+            sprintf(dp, ", ");
+            dp = strchr(dp, 0);
+          }
+
+          sprintf(dp, "0x%02X", addr);
+          dp = strchr(dp, 0);
+          found++;
+        }
+      }
+
+      if (found == 0) {
+        strcpy(reply, "No I2C devices found");
+      }
+        } else if (strcmp(command, "sensor read") == 0) {
+      Adafruit_BME280 bme;
+
+      if (!bme.begin(0x76, &Wire1)) {
+        strcpy(reply, "BME280 not found at 0x76");
+      } else {
+        bme.setSampling(
+          Adafruit_BME280::MODE_FORCED,
+          Adafruit_BME280::SAMPLING_X1,
+          Adafruit_BME280::SAMPLING_X1,
+          Adafruit_BME280::SAMPLING_X1,
+          Adafruit_BME280::FILTER_OFF
+        );
+
+        if (bme.takeForcedMeasurement()) {
+          float temp = bme.readTemperature();
+          float humidity = bme.readHumidity();
+          float pressure = bme.readPressure() / 100.0f;
+
+          snprintf(
+            reply,
+            160,
+            "Temp: %.1f C, Humidity: %.1f %%, Pressure: %.1f hPa",
+            temp,
+            humidity,
+            pressure
+          );
+        } else {
+          strcpy(reply, "BME280 measurement failed");
+        }
       }
     } else if (memcmp(command, "sensor set ", 11) == 0) {
       strcpy(tmp, &command[11]);
