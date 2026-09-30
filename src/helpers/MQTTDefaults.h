@@ -100,7 +100,7 @@ static inline void applyMQTTDefaults(MQTTPrefs* prefs) {
   // Slot 2 - WestMich
   strncpy(prefs->mqtt_slot_preset[1], "custom",
           sizeof(prefs->mqtt_slot_preset[1]) - 1);
-  strncpy(prefs->mqtt_slot_host[1], "wss://mqtt.westmichmesh.com:443",
+  strncpy(prefs->mqtt_slot_host[1], "wss://mqtt.westmichmesh.org:443",
           sizeof(prefs->mqtt_slot_host[1]) - 1);
   prefs->mqtt_slot_port[1] = 443;
 
