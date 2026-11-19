@@ -1,0 +1,30 @@
+name: Build Camp Tuomi Heltec V4 firmware
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - camp-tuomi-v4
+    paths:
+      - 'variants/heltec_v4/platformio.ini'
+      - '.github/workflows/build-camp-tuomi.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build-camp-tuomi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out Camp Tuomi firmware source
+        uses: actions/checkout@v4
+      - name: Set up PlatformIO environment
+        uses: ./.github/actions/setup-build-environment
+      - name: Build Heltec V4.3.1 repeater and observer
+        run: bash build.sh build-firmware heltec_v4_camp_tuomi
+      - name: Upload firmware binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: camp-tuomi-v4-firmware
+          path: out/*.bin
+          if-no-files-found: error
