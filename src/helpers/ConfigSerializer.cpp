@@ -1,4 +1,5 @@
 #include "ConfigSerializer.h"
+#include <stdlib.h>   // atoi/atol/atof (Arduino.h pulls this in on-device, native builds do not)
 
 #include <errno.h>
 #include <limits.h>
